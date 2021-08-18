@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -14,9 +13,8 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
-        
+        android:layout_height="wrap_content">
+
         <TextView
             android:id="@+id/title_label"
             android:layout_width="match_parent"
@@ -26,16 +24,16 @@
             android:text="title_label"
             android:textColor="@color/black"
             android:textSize="18sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/body_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="body_label"
             android:layout_below="@+id/title_label"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="20dp"/>
+            android:layout_marginTop="20dp"
+            android:text="body_label" />
 
         <TextView
             android:id="@+id/status_label"
@@ -46,6 +44,16 @@
             android:layout_marginTop="20dp"
             android:layout_marginBottom="10dp"
             android:text="body_label" />
+
+        <TextView
+            android:id="@+id/delete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/status_label"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="10dp"
+            android:text="delete" />
 
     </RelativeLayout>
 

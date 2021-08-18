@@ -23,17 +23,17 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AllTasks"
+            android:name=".features.AllTasks"
             android:parentActivityName=".MainActivity" />
         <activity
-            android:name=".AddTask"
+            android:name=".features.AddTask"
             android:parentActivityName=".MainActivity" />
         <activity
-            android:name=".TaskDetail"
+            android:name=".features.TaskDetail"
             android:parentActivityName=".MainActivity" />
 
         <activity
-            android:name=".Settings"
+            android:name=".features.Settings"
             android:parentActivityName=".MainActivity" />
     </application>
 
