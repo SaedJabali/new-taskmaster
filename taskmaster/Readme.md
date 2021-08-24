@@ -8,3 +8,15 @@
 
 ![all tasks](./assets/allTasks.PNG)
 
+![login](./assets/login.PNG)
+
+![login](./assets/login.PNG)
+
+![signup](./assets/signup.PNG)
+
+![verification](./assets/verification.PNG)
+
+![teams](./assets/teams.PNG)
+
+![upload](./assets/fileUploade.PNG)
+
