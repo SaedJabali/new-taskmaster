@@ -8,6 +8,21 @@ mutation CreateTask(
     title
     description
     status
+    taskId
+    fileName
+    team {
+      id
+      name
+      teamTasks {
+        nextToken
+        startedAt
+      }
+      _version
+      _deleted
+      _lastChangedAt
+      createdAt
+      updatedAt
+    }
     _version
     _deleted
     _lastChangedAt
@@ -24,6 +39,21 @@ mutation UpdateTask(
     title
     description
     status
+    taskId
+    fileName
+    team {
+      id
+      name
+      teamTasks {
+        nextToken
+        startedAt
+      }
+      _version
+      _deleted
+      _lastChangedAt
+      createdAt
+      updatedAt
+    }
     _version
     _deleted
     _lastChangedAt
@@ -40,6 +70,21 @@ mutation DeleteTask(
     title
     description
     status
+    taskId
+    fileName
+    team {
+      id
+      name
+      teamTasks {
+        nextToken
+        startedAt
+      }
+      _version
+      _deleted
+      _lastChangedAt
+      createdAt
+      updatedAt
+    }
     _version
     _deleted
     _lastChangedAt
@@ -47,13 +92,30 @@ mutation DeleteTask(
     updatedAt
   }
 }
-mutation CreateNote(
-  $input: CreateNoteInput!
-  $condition: ModelNoteConditionInput
+mutation CreateTeam(
+  $input: CreateTeamInput!
+  $condition: ModelTeamConditionInput
 ) {
-  createNote(input: $input, condition: $condition) {
+  createTeam(input: $input, condition: $condition) {
     id
-    content
+    name
+    teamTasks {
+      items {
+        id
+        title
+        description
+        status
+        taskId
+        fileName
+        _version
+        _deleted
+        _lastChangedAt
+        createdAt
+        updatedAt
+      }
+      nextToken
+      startedAt
+    }
     _version
     _deleted
     _lastChangedAt
@@ -61,13 +123,30 @@ mutation CreateNote(
     updatedAt
   }
 }
-mutation UpdateNote(
-  $input: UpdateNoteInput!
-  $condition: ModelNoteConditionInput
+mutation UpdateTeam(
+  $input: UpdateTeamInput!
+  $condition: ModelTeamConditionInput
 ) {
-  updateNote(input: $input, condition: $condition) {
+  updateTeam(input: $input, condition: $condition) {
     id
-    content
+    name
+    teamTasks {
+      items {
+        id
+        title
+        description
+        status
+        taskId
+        fileName
+        _version
+        _deleted
+        _lastChangedAt
+        createdAt
+        updatedAt
+      }
+      nextToken
+      startedAt
+    }
     _version
     _deleted
     _lastChangedAt
@@ -75,13 +154,30 @@ mutation UpdateNote(
     updatedAt
   }
 }
-mutation DeleteNote(
-  $input: DeleteNoteInput!
-  $condition: ModelNoteConditionInput
+mutation DeleteTeam(
+  $input: DeleteTeamInput!
+  $condition: ModelTeamConditionInput
 ) {
-  deleteNote(input: $input, condition: $condition) {
+  deleteTeam(input: $input, condition: $condition) {
     id
-    content
+    name
+    teamTasks {
+      items {
+        id
+        title
+        description
+        status
+        taskId
+        fileName
+        _version
+        _deleted
+        _lastChangedAt
+        createdAt
+        updatedAt
+      }
+      nextToken
+      startedAt
+    }
     _version
     _deleted
     _lastChangedAt

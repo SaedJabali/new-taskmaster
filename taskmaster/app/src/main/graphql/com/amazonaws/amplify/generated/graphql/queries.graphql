@@ -16,6 +16,17 @@ query SyncTasks(
       title
       description
       status
+      taskId
+      fileName
+      team {
+        id
+        name
+        _version
+        _deleted
+        _lastChangedAt
+        createdAt
+        updatedAt
+      }
       _version
       _deleted
       _lastChangedAt
@@ -32,6 +43,21 @@ query GetTask($id: ID!) {
     title
     description
     status
+    taskId
+    fileName
+    team {
+      id
+      name
+      teamTasks {
+        nextToken
+        startedAt
+      }
+      _version
+      _deleted
+      _lastChangedAt
+      createdAt
+      updatedAt
+    }
     _version
     _deleted
     _lastChangedAt
@@ -50,6 +76,17 @@ query ListTasks(
       title
       description
       status
+      taskId
+      fileName
+      team {
+        id
+        name
+        _version
+        _deleted
+        _lastChangedAt
+        createdAt
+        updatedAt
+      }
       _version
       _deleted
       _lastChangedAt
@@ -60,13 +97,13 @@ query ListTasks(
     startedAt
   }
 }
-query SyncNotes(
-  $filter: ModelNoteFilterInput
+query SyncTeams(
+  $filter: ModelTeamFilterInput
   $limit: Int
   $nextToken: String
   $lastSync: AWSTimestamp
 ) {
-  syncNotes(
+  syncTeams(
     filter: $filter
     limit: $limit
     nextToken: $nextToken
@@ -74,7 +111,11 @@ query SyncNotes(
   ) {
     items {
       id
-      content
+      name
+      teamTasks {
+        nextToken
+        startedAt
+      }
       _version
       _deleted
       _lastChangedAt
@@ -85,10 +126,27 @@ query SyncNotes(
     startedAt
   }
 }
-query GetNote($id: ID!) {
-  getNote(id: $id) {
+query GetTeam($id: ID!) {
+  getTeam(id: $id) {
     id
-    content
+    name
+    teamTasks {
+      items {
+        id
+        title
+        description
+        status
+        taskId
+        fileName
+        _version
+        _deleted
+        _lastChangedAt
+        createdAt
+        updatedAt
+      }
+      nextToken
+      startedAt
+    }
     _version
     _deleted
     _lastChangedAt
@@ -96,15 +154,19 @@ query GetNote($id: ID!) {
     updatedAt
   }
 }
-query ListNotes(
-  $filter: ModelNoteFilterInput
+query ListTeams(
+  $filter: ModelTeamFilterInput
   $limit: Int
   $nextToken: String
 ) {
-  listNotes(filter: $filter, limit: $limit, nextToken: $nextToken) {
+  listTeams(filter: $filter, limit: $limit, nextToken: $nextToken) {
     items {
       id
-      content
+      name
+      teamTasks {
+        nextToken
+        startedAt
+      }
       _version
       _deleted
       _lastChangedAt
