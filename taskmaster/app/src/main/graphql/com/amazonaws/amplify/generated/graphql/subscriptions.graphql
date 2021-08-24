@@ -5,6 +5,21 @@ subscription OnCreateTask {
     title
     description
     status
+    taskId
+    fileName
+    team {
+      id
+      name
+      teamTasks {
+        nextToken
+        startedAt
+      }
+      _version
+      _deleted
+      _lastChangedAt
+      createdAt
+      updatedAt
+    }
     _version
     _deleted
     _lastChangedAt
@@ -18,6 +33,21 @@ subscription OnUpdateTask {
     title
     description
     status
+    taskId
+    fileName
+    team {
+      id
+      name
+      teamTasks {
+        nextToken
+        startedAt
+      }
+      _version
+      _deleted
+      _lastChangedAt
+      createdAt
+      updatedAt
+    }
     _version
     _deleted
     _lastChangedAt
@@ -31,6 +61,21 @@ subscription OnDeleteTask {
     title
     description
     status
+    taskId
+    fileName
+    team {
+      id
+      name
+      teamTasks {
+        nextToken
+        startedAt
+      }
+      _version
+      _deleted
+      _lastChangedAt
+      createdAt
+      updatedAt
+    }
     _version
     _deleted
     _lastChangedAt
@@ -38,10 +83,27 @@ subscription OnDeleteTask {
     updatedAt
   }
 }
-subscription OnCreateNote {
-  onCreateNote {
+subscription OnCreateTeam {
+  onCreateTeam {
     id
-    content
+    name
+    teamTasks {
+      items {
+        id
+        title
+        description
+        status
+        taskId
+        fileName
+        _version
+        _deleted
+        _lastChangedAt
+        createdAt
+        updatedAt
+      }
+      nextToken
+      startedAt
+    }
     _version
     _deleted
     _lastChangedAt
@@ -49,10 +111,27 @@ subscription OnCreateNote {
     updatedAt
   }
 }
-subscription OnUpdateNote {
-  onUpdateNote {
+subscription OnUpdateTeam {
+  onUpdateTeam {
     id
-    content
+    name
+    teamTasks {
+      items {
+        id
+        title
+        description
+        status
+        taskId
+        fileName
+        _version
+        _deleted
+        _lastChangedAt
+        createdAt
+        updatedAt
+      }
+      nextToken
+      startedAt
+    }
     _version
     _deleted
     _lastChangedAt
@@ -60,10 +139,27 @@ subscription OnUpdateNote {
     updatedAt
   }
 }
-subscription OnDeleteNote {
-  onDeleteNote {
+subscription OnDeleteTeam {
+  onDeleteTeam {
     id
-    content
+    name
+    teamTasks {
+      items {
+        id
+        title
+        description
+        status
+        taskId
+        fileName
+        _version
+        _deleted
+        _lastChangedAt
+        createdAt
+        updatedAt
+      }
+      nextToken
+      startedAt
+    }
     _version
     _deleted
     _lastChangedAt

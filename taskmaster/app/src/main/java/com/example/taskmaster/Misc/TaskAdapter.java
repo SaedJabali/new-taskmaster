@@ -29,8 +29,6 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
         void onItemClicked(int position);
 
         void onDeleteItem(int position);
-
-        void onUpdateItem(int position);
     }
 
     @NonNull

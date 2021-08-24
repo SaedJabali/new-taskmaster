@@ -1,6 +1,7 @@
 package com.example.taskmaster;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -9,43 +10,62 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.os.Handler;
+import android.os.Looper;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.amazonaws.mobile.client.AWSMobileClient;
+import com.amazonaws.mobile.client.Callback;
+import com.amazonaws.mobile.client.UserStateDetails;
+import com.amazonaws.mobile.config.AWSConfiguration;
+import com.amazonaws.mobileconnectors.pinpoint.PinpointConfiguration;
+import com.amazonaws.mobileconnectors.pinpoint.PinpointManager;
 import com.amplifyframework.AmplifyException;
 import com.amplifyframework.api.aws.AWSApiPlugin;
+import com.amplifyframework.api.graphql.model.ModelMutation;
+import com.amplifyframework.api.graphql.model.ModelQuery;
+import com.amplifyframework.auth.AuthUser;
+import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin;
 import com.amplifyframework.core.Amplify;
 import com.amplifyframework.datastore.AWSDataStorePlugin;
 import com.amplifyframework.datastore.generated.model.Task;
-import com.example.taskmaster.Misc.AppDB;
+//import com.example.taskmaster.Misc.AppDB;
+import com.amplifyframework.datastore.generated.model.Team;
+import com.amplifyframework.storage.s3.AWSS3StoragePlugin;
 import com.example.taskmaster.Misc.TaskAdapter;
-import com.example.taskmaster.Misc.TaskDAO;
+//import com.example.taskmaster.Misc.TaskDAO;
 import com.example.taskmaster.features.AddTask;
 import com.example.taskmaster.features.AllTasks;
+import com.example.taskmaster.features.LoginActivity;
 import com.example.taskmaster.features.Settings;
 import com.example.taskmaster.features.TaskDetail;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.security.auth.login.LoginException;
-
 public class MainActivity extends AppCompatActivity {
 
 
-    public static final String TASK_DB = "task_db";
     public static final String TASK_TITLE = "taskTitle";
     public static final String TASK_BODY = "taskBody";
     public static final String TASK_STATUS = "taskStatus";
     private static final String TAG = "Main Activity";
     private static final String AmpTAG = "Tutorial";
 
-    AppDB taskDb;
-    private List<Task> taskList;
-    private static TaskAdapter adapter;
-    TaskDAO taskDAO;
+
+     static List<Task> taskList = new ArrayList<>();;
+     static TaskAdapter adapter;
+     static Handler handler;
+     static Team teamData = null;
+     static String teamNameData = null;
+     static String currentUsername = null;
+     static PinpointManager pinpointManager;
 
 
     @Override
@@ -53,33 +73,35 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        try {
-//            Amplify.configure(getApplicationContext());
-//
-//            Log.i("MyAmplifyApp", "Initialized Amplify");
-//        } catch (AmplifyException e) {
-//            Log.e("MyAmplifyApp", "Could not initialize Amplify", e);
-//        }
 
-        configureAmplify();
-//        taskDb = Room.databaseBuilder(
-//                this,
-//                AppDB.class,
-//                TASK_DB
-//        ).allowMainThreadQueries().build();
-//
-//        taskDAO = taskDb.taskDAO();
+        try {
+//      Amplify.addPlugin(new AWSDataStorePlugin());
+            Amplify.addPlugin(new AWSCognitoAuthPlugin());
+            Amplify.addPlugin(new AWSS3StoragePlugin());
+            Amplify.addPlugin(new AWSApiPlugin());
+            Amplify.configure(getApplicationContext());
+
+            Log.i("Tutorial", "Initialized Amplify");
+        } catch (AmplifyException e) {
+            Log.e("Tutorial", "Could not initialize Amplify", e);
+        }
+
+
+        if (Amplify.Auth.getCurrentUser() != null) {
+            Log.i(TAG, "Auth: " + Amplify.Auth.getCurrentUser().toString());
+        } else {
+            Log.i(TAG, "Auth:  no user " + Amplify.Auth.getCurrentUser());
+            Intent goToLogin = new Intent(this, LoginActivity.class);
+            startActivity(goToLogin);
+        }
+
+        handler = new Handler(Looper.getMainLooper(),
+                message -> {
+                    listItemDeleted();
+                    return false;
+                });
 
         RecyclerView taskRecyclerView = findViewById(R.id.List_tasks);
-//        taskList = new ArrayList<>();
-//        taskList.add(new Task("Task 1","get some rest","new"));
-//        taskList.add(new Task("Task 2","work on code challenge for today","assigned"));
-//        taskList.add(new Task("Task 3","do lab work for today","in progress"));
-//        taskList.add(new Task("Task 4","visit family","complete"));
-
-//        taskList = taskDAO.findAll();
-
-        taskList = getDataFromAmplify();
 
         adapter = new TaskAdapter(taskList, new TaskAdapter.OnTaskClickListener() {
             @Override
@@ -94,18 +116,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDeleteItem(int position) {
 //        taskDao.delete(taskList.get(position));
-
-                Amplify.DataStore.delete(taskList.get(position),
-                        success -> Log.i("Tutorial", "item deleted: " + success.item().toString()),
-                        failure -> Log.e("Tutorial", "Could not query DataStore", failure));
-
+                Amplify.API.mutate(ModelMutation.delete(taskList.get(position)),
+                        response -> Log.i(TAG, "item deleted from API:"),
+                        error -> Log.e(TAG, "Delete failed", error)
+                );
                 taskList.remove(position);
                 listItemDeleted();
-            }
-
-            @Override
-            public void onUpdateItem(int position) {
-
             }
         });
 
@@ -120,15 +136,6 @@ public class MainActivity extends AppCompatActivity {
         Button allTasksButton = findViewById(R.id.allTasksButton);
         allTasksButton.setOnClickListener(goToAllTasks);
 
-//        Button makeTaskDetailsButton = findViewById(R.id.makeTaskDetailsButton);
-//        makeTaskDetailsButton.setOnClickListener(goToTaskDetail);
-//
-//        Button makeTaskDetailsButton1 = findViewById(R.id.makeTaskDetailsButton1);
-//        makeTaskDetailsButton1.setOnClickListener(goToTaskDetail1);
-//
-//        Button makeTaskDetailsButton2 = findViewById(R.id.makeTaskDetailsButton2);
-//        makeTaskDetailsButton2.setOnClickListener(goToTaskDetail2);
-
 
         Button settingsButton = findViewById(R.id.settingsButton);
         settingsButton.setOnClickListener(goToSettings);
@@ -136,109 +143,178 @@ public class MainActivity extends AppCompatActivity {
         taskRecyclerView.setAdapter(adapter);
         taskRecyclerView.setLayoutManager(linearLayoutManager);
 
-
+        getTaskDataFromAPI();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
+        if (Amplify.Auth.getCurrentUser() != null) {
+            TextView userNameText = (findViewById(R.id.userTasksLabel));
+            userNameText.setText(Amplify.Auth.getCurrentUser().getUsername() + "'s Tasks");
+        } else {
+            Intent goToLogin = new Intent(this, LoginActivity.class);
+            startActivity(goToLogin);
+        }
+
+
         SharedPreferences preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         String username = preference.getString("username", "user") + "'s Tasks";
-        TextView userLabel = findViewById(R.id.userTasksLabel);
-        userLabel.setText(username);
-        getDataFromAmplify();
+        String teamName = "Your Team Name is: " + preference.getString("teamName", "Choose your team");
+        teamNameData = preference.getString("teamName", null);
+//    TextView userLabel = findViewById(R.id.userTasksLabel);
+        TextView teamNameLabel = findViewById(R.id.teamTasksLabel);
+//    userLabel.setText(username);
+        teamNameLabel.setText(teamName);
+
+        if (teamNameData != null) {
+            getTeamDetailFromAPIByName();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            taskList.clear();
+            Log.i(TAG, "-----selected team true-------- ");
+            Log.i(TAG, teamNameData);
+            getTaskDataFromAPIByTeam();
+        }
     }
 
-    private final View.OnClickListener goToNewTaskCreator = new View.OnClickListener() {
-        public void onClick(View v) {
-            Intent i = new Intent(getBaseContext(), AddTask.class);
-            startActivity(i);
-        }
+    private final View.OnClickListener goToNewTaskCreator = v -> {
+        Intent i = new Intent(getBaseContext(), AddTask.class);
+        startActivity(i);
     };
 
-    private final View.OnClickListener goToAllTasks = new View.OnClickListener() {
-        public void onClick(View v) {
-            Intent i = new Intent(getBaseContext(), AllTasks.class);
-            startActivity(i);
-        }
+    private final View.OnClickListener goToAllTasks = v -> {
+        Intent i = new Intent(getBaseContext(), AllTasks.class);
+        startActivity(i);
+    };
+    private final View.OnClickListener goToSettings = v -> {
+        Intent i = new Intent(getBaseContext(), Settings.class);
+        startActivity(i);
     };
 
-//    private final View.OnClickListener goToTaskDetail = new View.OnClickListener() {
-//        public void onClick(View v) {
-//            Button makeTaskDetailsButton = findViewById(R.id.makeTaskDetailsButton);
-//            String buttonText = makeTaskDetailsButton.getText().toString();
-//            Intent i = new Intent(getBaseContext(), TaskDetail.class);
-//            i.putExtra(TASK_NAME, buttonText);
-//            startActivity(i);
-//        }
-//    };
-//
-//    private final View.OnClickListener goToTaskDetail1 = new View.OnClickListener() {
-//        public void onClick(View v) {
-//            Button makeTaskDetailsButton1 = findViewById(R.id.makeTaskDetailsButton1);
-//            String buttonText = makeTaskDetailsButton1.getText().toString();
-//            Intent i = new Intent(getBaseContext(), TaskDetail.class);
-//            i.putExtra(TASK_NAME, buttonText);
-//            startActivity(i);
-//        }
-//    };
-//
-//    private final View.OnClickListener goToTaskDetail2 = new View.OnClickListener() {
-//        public void onClick(View v) {
-//            Button makeTaskDetailsButton2 = findViewById(R.id.makeTaskDetailsButton2);
-//            String buttonText = makeTaskDetailsButton2.getText().toString();
-//            Intent i = new Intent(getBaseContext(), TaskDetail.class);
-//            i.putExtra(TASK_NAME, buttonText);
-//            startActivity(i);
-//        }
-//    };
+    public static void saveTaskToAPI(Task item) {
+        Amplify.API.mutate(ModelMutation.create(item),
+                success -> Log.i(TAG, "Saved item to api : " + success.getData().getTitle()),
+                error -> Log.e(TAG, "Could not save item to API/dynamodb" + error.toString()));
 
-    private final View.OnClickListener goToSettings = new View.OnClickListener() {
-        public void onClick(View v) {
-            Intent i = new Intent(getBaseContext(), Settings.class);
-            startActivity(i);
-        }
-    };
-
-    public static void saveDataToAmplify(String title, String body, String status) {
-        Task item = Task.builder().title(title).description(body).status(status).build();
-
-        Amplify.DataStore.save(item,
-                success -> Log.i("Tutorial", "Saved item: " + success.item().toString()),
-                error -> Log.e("Tutorial", "Could not save item to DataStore", error)
-        );
-        listItemDeleted();
     }
 
-    public synchronized static List<Task> getDataFromAmplify() {
-        System.out.println("In get data");
-        List<Task> list = new ArrayList<>();
-        Amplify.DataStore.query(Task.class, todos -> {
-                    while (todos.hasNext()) {
-                        Task todo = todos.next();
-                        list.add(todo);
-                        Log.i(AmpTAG, "Data From Amplify: ");
-                        Log.i(AmpTAG, "Task Name: " + todo.getTitle());
-                        Log.i(AmpTAG, "Task Description: " + todo.getDescription());
-                        Log.i(AmpTAG, "Task Status: " + todo.getStatus());
+
+    public void getTaskDataFromAPI() {
+
+        Amplify.API.query(ModelQuery.list(Task.class),
+                response -> {
+                    for (Task task : response.getData()) {
+                        taskList.add(task);
+                        Log.i(TAG, "get Task Data From Api: " + task.toString());
                     }
-                }, e -> Log.e(AmpTAG, "Could not query DataStore", e)
+                    handler.sendEmptyMessage(1);
+                },
+                error -> Log.e(TAG, "failed to get Task Data From Api: " + error.toString())
         );
-        return list;
     }
 
-    private void configureAmplify() {
-        // configure Amplify plugins
-        try {
-            Amplify.addPlugin(new AWSDataStorePlugin());
-            Amplify.addPlugin(new AWSApiPlugin());
-            Amplify.configure(getApplicationContext());
-            Log.i(TAG, "onCreate: Successfully initialized Amplify plugins");
-        } catch (AmplifyException exception) {
-            Log.e(TAG, "onCreate: Failed to initialize Amplify plugins => " + exception.toString());
-        }
+
+    public static void getTeamDetailFromAPIByName() {
+        Amplify.API.query(ModelQuery.list(Team.class, Team.NAME.contains(teamNameData)),
+                response -> {
+                    for (Team teamDetail : response.getData()) {
+                        Log.i(TAG, teamDetail.toString());
+                        teamData = teamDetail;
+                    }
+                },
+                error -> Log.e(TAG, "failed to get Team Detail : " + error.toString())
+        );
     }
+
+    public void getTaskDataFromAPIByTeam() {
+        Amplify.API.query(ModelQuery.list(Task.class, Task.TEAM.contains(teamData.getId())),
+                response -> {
+                    for (Task task : response.getData()) {
+                        Log.i(TAG, "Task Team ID: " + task.getTeam().getId());
+                        Log.i(TAG, "Team ID: " + teamData.getId());
+                        taskList.add(task);
+                        Log.i(TAG, "get Task Data From API By Team: " + task.toString());
+                    }
+                    handler.sendEmptyMessage(1);
+                },
+                error -> Log.e(TAG, "failed to get Task Data From API By Team: " + error.toString())
+        );
+    }
+
+    public  void getCurrentUser() {
+        AuthUser authUser = Amplify.Auth.getCurrentUser();
+        currentUsername = authUser.getUsername();
+        Log.i(TAG, "getCurrentUser: " + authUser.toString());
+        Log.i(TAG, "getCurrentUser: username" + authUser.getUsername());
+        Log.i(TAG, "getCurrentUser: userId" + authUser.getUserId());
+    }
+
+
+    public void logout(){
+        Amplify.Auth.signOut(
+                () ->{
+                    Log.i("AuthQuickstart", "Signed out successfully");
+                    Intent goToLogin = new Intent(getBaseContext(), LoginActivity.class);
+                    startActivity(goToLogin);
+                } ,
+                error -> Log.e("AuthQuickstart", error.toString())
+        );
+    }
+
+    public static PinpointManager getPinpointManager(final Context applicationContext) {
+        if (pinpointManager == null) {
+            final AWSConfiguration awsConfig = new AWSConfiguration(applicationContext);
+            AWSMobileClient.getInstance().initialize(applicationContext, awsConfig, new Callback<UserStateDetails>() {
+                @Override
+                public void onResult(UserStateDetails userStateDetails) {
+                    Log.i("INIT", userStateDetails.getUserState().toString());
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Log.e("INIT", "Initialization error.", e);
+                }
+            });
+
+            PinpointConfiguration pinpointConfig = new PinpointConfiguration(
+                    applicationContext,
+                    AWSMobileClient.getInstance(),
+                    awsConfig);
+
+            pinpointManager = new PinpointManager(pinpointConfig);
+
+            FirebaseMessaging.getInstance().getToken()
+                    .addOnCompleteListener(new OnCompleteListener<String>() {
+                        @Override
+                        public void onComplete(@NonNull com.google.android.gms.tasks.Task<String> task) {
+                            if (!task.isSuccessful()) {
+                                Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                                return;
+                            }
+                            final String token = task.getResult();
+                            Log.d(TAG, "Registering push notifications token: " + token);
+                            pinpointManager.getNotificationClient().registerDeviceToken(token);
+                        }
+                    });
+        }
+        return pinpointManager;
+    }
+//    private void configureAmplify() {
+//        // configure Amplify plugins
+//        try {
+//            Amplify.addPlugin(new AWSDataStorePlugin());
+//            Amplify.addPlugin(new AWSApiPlugin());
+//            Amplify.configure(getApplicationContext());
+//            Log.i(TAG, "onCreate: Successfully initialized Amplify plugins");
+//        } catch (AmplifyException exception) {
+//            Log.e(TAG, "onCreate: Failed to initialize Amplify plugins => " + exception.toString());
+//        }
+//    }
 
 
     @SuppressLint("NotifyDataSetChanged")

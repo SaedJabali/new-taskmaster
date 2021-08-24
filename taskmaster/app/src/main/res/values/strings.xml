@@ -17,4 +17,26 @@
     <string name="update_username">Update Username</string>
     <string name="my_tasks_list">My Tasks List</string>
     <string name="status">Status</string>
+    <string name="update_team_name">Update Team Name</string>
+    <string name="task_status">Task Status</string>
+    <string name="choose_a_team">Choose a Team</string>
+    <string name="team_1">team 1</string>
+    <string name="team_2">team 2</string>
+    <string name="team_3">team 3</string>
+    <string name="save_username">Save Username</string>
+    <string name="title_label">title_label</string>
+    <string name="body_label">body_label</string>
+    <string name="status_label">status_label</string>
+    <string name="delete">delete</string>
+    <string name="verification">Verification</string>
+    <string name="verification_code">verification code</string>
+    <string name="login">login</string>
+    <string name="email">email</string>
+    <string name="username">username</string>
+    <string name="signup">Signup</string>
+    <string name="password">password</string>
+    <string name="logout">logout</string>
+    <string name="upload_file">upload file</string>
+    <string name="link">link</string>
+    <string name="todo">TODO</string>
 </resources>
