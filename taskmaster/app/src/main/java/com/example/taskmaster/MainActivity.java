@@ -59,13 +59,14 @@ public class MainActivity extends AppCompatActivity {
     private static final String AmpTAG = "Tutorial";
 
 
-     static List<Task> taskList = new ArrayList<>();;
-     static TaskAdapter adapter;
-     static Handler handler;
-     static Team teamData = null;
-     static String teamNameData = null;
-     static String currentUsername = null;
-     static PinpointManager pinpointManager;
+    static List<Task> taskList = new ArrayList<>();
+    ;
+    static TaskAdapter adapter;
+    static Handler handler;
+    static Team teamData = null;
+    static String teamNameData = null;
+    static String currentUsername = null;
+    static PinpointManager pinpointManager;
 
 
     @Override
@@ -144,19 +145,22 @@ public class MainActivity extends AppCompatActivity {
         taskRecyclerView.setLayoutManager(linearLayoutManager);
 
         getTaskDataFromAPI();
+
+//        throw new RuntimeException("Test Crash");
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onResume() {
         super.onResume();
 
-        if (Amplify.Auth.getCurrentUser() != null) {
-            TextView userNameText = (findViewById(R.id.userTasksLabel));
-            userNameText.setText(Amplify.Auth.getCurrentUser().getUsername() + "'s Tasks");
-        } else {
-            Intent goToLogin = new Intent(this, LoginActivity.class);
-            startActivity(goToLogin);
-        }
+//        if (Amplify.Auth.getCurrentUser() != null) {
+//            TextView userNameText = (findViewById(R.id.userTasksLabel));
+//            userNameText.setText(Amplify.Auth.getCurrentUser().getUsername() + "'s Tasks");
+//        } else {
+//            Intent goToLogin = new Intent(this, LoginActivity.class);
+//            startActivity(goToLogin);
+//        }
 
 
         SharedPreferences preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -246,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    public  void getCurrentUser() {
+    public void getCurrentUser() {
         AuthUser authUser = Amplify.Auth.getCurrentUser();
         currentUsername = authUser.getUsername();
         Log.i(TAG, "getCurrentUser: " + authUser.toString());
@@ -255,13 +259,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void logout(){
+    public void logout() {
         Amplify.Auth.signOut(
-                () ->{
+                () -> {
                     Log.i("AuthQuickstart", "Signed out successfully");
                     Intent goToLogin = new Intent(getBaseContext(), LoginActivity.class);
                     startActivity(goToLogin);
-                } ,
+                },
                 error -> Log.e("AuthQuickstart", error.toString())
         );
     }
@@ -304,17 +308,17 @@ public class MainActivity extends AppCompatActivity {
         }
         return pinpointManager;
     }
-//    private void configureAmplify() {
-//        // configure Amplify plugins
-//        try {
-//            Amplify.addPlugin(new AWSDataStorePlugin());
-//            Amplify.addPlugin(new AWSApiPlugin());
-//            Amplify.configure(getApplicationContext());
-//            Log.i(TAG, "onCreate: Successfully initialized Amplify plugins");
-//        } catch (AmplifyException exception) {
-//            Log.e(TAG, "onCreate: Failed to initialize Amplify plugins => " + exception.toString());
-//        }
-//    }
+    private void configureAmplify() {
+        // configure Amplify plugins
+        try {
+            Amplify.addPlugin(new AWSDataStorePlugin());
+            Amplify.addPlugin(new AWSApiPlugin());
+            Amplify.configure(getApplicationContext());
+            Log.i(TAG, "onCreate: Successfully initialized Amplify plugins");
+        } catch (AmplifyException exception) {
+            Log.e(TAG, "onCreate: Failed to initialize Amplify plugins => " + exception.toString());
+        }
+    }
 
 
     @SuppressLint("NotifyDataSetChanged")
