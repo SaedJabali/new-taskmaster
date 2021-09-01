@@ -53,7 +53,7 @@ public class AddTask extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        configureAmplify();
+//        configureAmplify();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_task);
 
